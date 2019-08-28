@@ -95,5 +95,29 @@ done
 
 oc wait --for condition=ready pod -l app=kubevirt-node-labeller -n ${OPERATORS_NAMESPACE} --timeout=2400s
 
+# WORK IN PROGRESS, would work only once this script installs CNV 2.1
+# XXX Note that following will kill node connectivity for a minute or two
+# TODO can we hardcode the port name or should we detect current default interface?
+cat <<EOF | oc apply -f -
+apiVersion: nmstate.io/v1alpha1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: brext-policy
+spec:
+  desiredState:
+    interfaces:
+    - name: brext
+      type: linux-bridge
+      state: up
+      ipv4:
+        dhcp: true
+        enabled: true
+      ipv6:
+        dhcp: true
+        enabled: true
+      bridge:
+        port:
+        - name: eno2
+EOF
 
 echo "Done installing CNV!"
